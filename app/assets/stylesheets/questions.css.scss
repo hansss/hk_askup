@@ -2,6 +2,11 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
+/*#all-mine-filter{
+float: right;
+
+}*/
+
 .panel-title {
   .btn-flat {
     color: white;
@@ -9,13 +14,11 @@
       color: white;
     }
   }
-
 }
 
 .reveal_btn {
   //float:right;
   text-align: right;
-
 }
 
 .newquestion.container {
