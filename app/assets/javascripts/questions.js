@@ -2,12 +2,16 @@
 
 
 $(document).ready(function(q){
+
     $("#mine-radio").click(
-        function(){
-            $('.other-question').hide();
-            console.log("clicked")
-        }
-    );
+      function(){
+        $('.other-question').hide();
+      });
+
+    $('#all-radio').click(function(){
+      $('.other-question').show();
+    });
+
 });
 
 

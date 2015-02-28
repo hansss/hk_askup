@@ -13,7 +13,7 @@
 
 
   <div id = "all-mine-filter" class="btn-group" data-toggle="buttons">
-    <label class="btn btn-primary active" id="all_radio">
+    <label class="btn btn-primary active" id="all-radio">
       <input type="radio" name="options" autocomplete="off" checked> All
     </label>
     <label class="btn btn-primary" id="mine-radio">
@@ -26,7 +26,7 @@
   <div class = "question_list">
   <% @questions.each do |question| %>
 
-      <div class= "panel-group" "test" <% if question["user_id"] != current_user.id %> "other-question" <% end %>>
+      <div class= "panel-group <%= 'other-question' if question['user_id'] != current_user.id%>">
 
       <div class="panel panel-default">
         <div class="panel-heading">
