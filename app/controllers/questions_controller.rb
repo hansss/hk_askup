@@ -7,7 +7,6 @@ class QuestionsController < ApplicationController
   def index
     @questions = get_question_list()
     @my_questions = @questions.select{|question| question["user_id"] == current_user.id}
-
   end
 
   def new
