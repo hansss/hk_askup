@@ -1,11 +1,20 @@
 // $(document).ready(function(q){
-console.log('testing');
 
 
-$("#mine-radio").click(
-  function(){
-    alert("I Work!")
-  });
+$(document).ready(function(q){
+    $("#mine-radio").click(
+        function(){
+            $('.other-question').hide();
+            console.log("clicked")
+        }
+    );
+});
+
+
+// $("#mine-radio").click(
+//   function(){
+//     alert("I Work!")
+//   });
 
 
 

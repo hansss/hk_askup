@@ -26,8 +26,8 @@
   <div class = "question_list">
   <% @questions.each do |question| %>
 
-      <div class="panel-group" 
-      <% if question["user_id"] == current_user.id %> "mine-question" <% end %>>
+      <div class= "panel-group" "test" <% if question["user_id"] != current_user.id %> "other-question" <% end %>>
+
       <div class="panel panel-default">
         <div class="panel-heading">
           <h4 class="panel-title">
