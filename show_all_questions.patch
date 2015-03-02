@@ -1,0 +1,522 @@
+From 043149b56bad82cff7a8039a1b27647b6f60afd3 Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Fri, 27 Feb 2015 15:34:33 -0500
+Subject: [PATCH 1/7] added html button and filter for my vs all questions
+
+---
+ Gemfile.lock                              |  2 ++
+ app/assets/stylesheets/questions.css.scss |  7 +++++--
+ app/controllers/questions_controller.rb   |  2 ++
+ app/models/user.rb                        |  2 ++
+ app/views/questions/index.html.erb        | 28 ++++++++++++++++++++++++----
+ db/schema.rb                              |  7 ++-----
+ 6 files changed, 37 insertions(+), 11 deletions(-)
+
+diff --git a/Gemfile.lock b/Gemfile.lock
+index f32cbbd..1cbf2d8 100644
+--- a/Gemfile.lock
++++ b/Gemfile.lock
+@@ -111,6 +111,7 @@ GEM
+       actionpack (>= 3.0)
+       activesupport (>= 3.0)
+       sprockets (>= 2.8, < 4.0)
++    sqlite3 (1.3.10)
+     thor (0.19.1)
+     thread_safe (0.3.4)
+     tilt (1.4.1)
+@@ -143,5 +144,6 @@ DEPENDENCIES
+   sass-rails (~> 4.0.3)
+   sdoc (~> 0.4.0)
+   spring
++  sqlite3
+   turbolinks
+   uglifier (>= 1.3.0)
+diff --git a/app/assets/stylesheets/questions.css.scss b/app/assets/stylesheets/questions.css.scss
+index df8b9eb..616b595 100644
+--- a/app/assets/stylesheets/questions.css.scss
++++ b/app/assets/stylesheets/questions.css.scss
+@@ -2,6 +2,11 @@
+ // They will automatically be included in application.css.
+ // You can use Sass (SCSS) here: http://sass-lang.com/
+ 
++/*#all-mine-filter{
++float: right;
++
++}*/
++
+ .panel-title {
+   .btn-flat {
+     color: white;
+@@ -9,13 +14,11 @@
+       color: white;
+     }
+   }
+-
+ }
+ 
+ .reveal_btn {
+   //float:right;
+   text-align: right;
+-
+ }
+ 
+ .newquestion.container {
+diff --git a/app/controllers/questions_controller.rb b/app/controllers/questions_controller.rb
+index 90a4f5b..c27818f 100644
+--- a/app/controllers/questions_controller.rb
++++ b/app/controllers/questions_controller.rb
+@@ -6,6 +6,8 @@ class QuestionsController < ApplicationController
+ 
+   def index
+     @questions = get_question_list()
++    @my_questions = @questions.select{|question| question["user_id"] == current_user.id}
++
+   end
+ 
+   def new
+diff --git a/app/models/user.rb b/app/models/user.rb
+index 78a12f0..55782f3 100644
+--- a/app/models/user.rb
++++ b/app/models/user.rb
+@@ -1,10 +1,12 @@
+ class User < ActiveRecord::Base
+   has_many :questions
++  accepts_nested_attributes_for :questions
+   # Include default devise modules. Others available are:
+   # :confirmable, :lockable, :timeoutable, recoverable, and :omniauthable
+   devise :database_authenticatable, :registerable,
+          :rememberable, :trackable, :validatable
+ 
++  
+   def full_name
+     first_name + " " + last_name
+   end
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index e4f01b3..c546535 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -1,13 +1,31 @@
+ <div class="container">
+   <br>
++    <div class = "find_me">
++      <%= current_user.id %>
++      <% @my_questions.each do |my_q| %>
++        <%= my_q%>
++      <% end %>
++    </div>
++
++
+   <h3 class="center"><b>Questions</b></h3><br>
+ 
+-  <% collapse_count = 1 %>
+ 
+-  <% @questions.each do |question| %>
++  <div id = "all-mine-filter" class="btn-group" data-toggle="buttons">
++    <label class="btn btn-primary active">
++      <input type="radio" name="options" id="all_radio" autocomplete="off" checked> All
++    </label>
++    <label class="btn btn-primary">
++      <input type="radio" name="options" id="mine-radio" autocomplete="off"> Mine
++    </label>
++  </div>
+ 
+-    <% if question["user_id"] == current_user.id %>
+ 
++  <% collapse_count = 1 %>
++
++  <div class = "question_list">
++  <% @questions.each do |question| %>
++      <% #if question["user_id"] == current_user.id %>
+ 
+       <div class="panel-group">
+       <div class="panel panel-default">
+@@ -38,7 +56,9 @@
+       </div>
+       <% collapse_count += 1 %>
+     <% end %>
+-  <% end %>
++  </div>
++  <%# end %>
++
+ 
+ <br>
+ 
+diff --git a/db/schema.rb b/db/schema.rb
+index c2bcb08..49889fa 100644
+--- a/db/schema.rb
++++ b/db/schema.rb
+@@ -13,9 +13,6 @@
+ 
+ ActiveRecord::Schema.define(version: 20141203175017) do
+ 
+-  # These are extensions that must be enabled in order to support this database
+-  enable_extension "plpgsql"
+-
+   create_table "answers", force: true do |t|
+     t.datetime "created_at"
+     t.datetime "updated_at"
+@@ -47,7 +44,7 @@ ActiveRecord::Schema.define(version: 20141203175017) do
+     t.string   "last_name"
+   end
+ 
+-  add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
+-  add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
++  add_index "users", ["email"], name: "index_users_on_email", unique: true
++  add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+ 
+ end
+-- 
+1.8.5.2 (Apple Git-48)
+
+
+From 6331b87557eb48ab9d0d1ef4eedbaaa9ccf533f3 Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Sat, 28 Feb 2015 15:20:24 -0500
+Subject: [PATCH 2/7] All Mine button js
+
+---
+ app/assets/javascripts/application.js      |  1 +
+ app/assets/javascripts/questions.js        | 11 +++++++++++
+ app/assets/javascripts/questions.js.coffee |  3 ---
+ app/controllers/questions_controller.rb    |  1 -
+ app/views/questions/index.html.erb         |  5 ++---
+ 5 files changed, 14 insertions(+), 7 deletions(-)
+ create mode 100644 app/assets/javascripts/questions.js
+ delete mode 100644 app/assets/javascripts/questions.js.coffee
+
+diff --git a/app/assets/javascripts/application.js b/app/assets/javascripts/application.js
+index 948f12d..cf74ba5 100644
+--- a/app/assets/javascripts/application.js
++++ b/app/assets/javascripts/application.js
+@@ -15,6 +15,7 @@
+ //= require bootstrap-sprockets
+ //= require home
+ //= require answers
++//= require questions
+ //= require global
+ //= require jquery.easing.min
+ //= require jquery.scrollTo
+diff --git a/app/assets/javascripts/questions.js b/app/assets/javascripts/questions.js
+new file mode 100644
+index 0000000..e72cd9c
+--- /dev/null
++++ b/app/assets/javascripts/questions.js
+@@ -0,0 +1,11 @@
++// $(document).ready(function(q){
++
++// $("#mine-radio").click(
++//   function(q){
++//     alert("I Work!")
++//   });
++// });
++
++$(document).on("click", "#mine-radio", function(){
++  alert("I Work!")
++});
+diff --git a/app/assets/javascripts/questions.js.coffee b/app/assets/javascripts/questions.js.coffee
+deleted file mode 100644
+index 24f83d1..0000000
+--- a/app/assets/javascripts/questions.js.coffee
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# Place all the behaviors and hooks related to the matching controller here.
+-# All this logic will automatically be available in application.js.
+-# You can use CoffeeScript in this file: http://coffeescript.org/
+diff --git a/app/controllers/questions_controller.rb b/app/controllers/questions_controller.rb
+index c27818f..924277a 100644
+--- a/app/controllers/questions_controller.rb
++++ b/app/controllers/questions_controller.rb
+@@ -7,7 +7,6 @@ class QuestionsController < ApplicationController
+   def index
+     @questions = get_question_list()
+     @my_questions = @questions.select{|question| question["user_id"] == current_user.id}
+-
+   end
+ 
+   def new
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index c546535..71b1c75 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -20,14 +20,13 @@
+     </label>
+   </div>
+ 
+-
+   <% collapse_count = 1 %>
+ 
+   <div class = "question_list">
+   <% @questions.each do |question| %>
+-      <% #if question["user_id"] == current_user.id %>
+ 
+-      <div class="panel-group">
++      <div class="panel-group" 
++      <% if question["user_id"] == current_user.id %> "mine-question" <% end %>>
+       <div class="panel panel-default">
+         <div class="panel-heading">
+           <h4 class="panel-title">
+-- 
+1.8.5.2 (Apple Git-48)
+
+
+From 055d2863a631e8b7ab8e4d61e1114909657f9d2d Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Sat, 28 Feb 2015 15:49:32 -0500
+Subject: [PATCH 3/7] New repo
+
+---
+ app/assets/javascripts/questions.js | 20 ++++++++++++--------
+ app/views/questions/index.html.erb  |  9 +++++----
+ 2 files changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/app/assets/javascripts/questions.js b/app/assets/javascripts/questions.js
+index e72cd9c..5bbbf7b 100644
+--- a/app/assets/javascripts/questions.js
++++ b/app/assets/javascripts/questions.js
+@@ -1,11 +1,15 @@
+ // $(document).ready(function(q){
++console.log('testing');
++
++
++$("#mine-radio").click(
++  function(){
++    alert("I Work!")
++  });
+ 
+-// $("#mine-radio").click(
+-//   function(q){
+-//     alert("I Work!")
+-//   });
+-// });
+ 
+-$(document).on("click", "#mine-radio", function(){
+-  alert("I Work!")
+-});
++
++
++// $(document).on("click", "#mine-radio", function(){
++//   alert("I Work!")
++// });
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index 71b1c75..26cf3ff 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -1,3 +1,4 @@
++
+ <div class="container">
+   <br>
+     <div class = "find_me">
+@@ -12,11 +13,11 @@
+ 
+ 
+   <div id = "all-mine-filter" class="btn-group" data-toggle="buttons">
+-    <label class="btn btn-primary active">
+-      <input type="radio" name="options" id="all_radio" autocomplete="off" checked> All
++    <label class="btn btn-primary active" id="all_radio">
++      <input type="radio" name="options" autocomplete="off" checked> All
+     </label>
+-    <label class="btn btn-primary">
+-      <input type="radio" name="options" id="mine-radio" autocomplete="off"> Mine
++    <label class="btn btn-primary" id="mine-radio">
++      <input type="radio" name="options"  autocomplete="off"> Mine
+     </label>
+   </div>
+ 
+-- 
+1.8.5.2 (Apple Git-48)
+
+
+From a6636899275e65fc3f0dd395932b659c73944976 Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Sat, 28 Feb 2015 17:11:35 -0500
+Subject: [PATCH 4/7] Added class tag to other users questions
+
+---
+ app/assets/javascripts/questions.js | 19 ++++++++++++++-----
+ app/views/questions/index.html.erb  |  4 ++--
+ 2 files changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/app/assets/javascripts/questions.js b/app/assets/javascripts/questions.js
+index 5bbbf7b..ae05fb5 100644
+--- a/app/assets/javascripts/questions.js
++++ b/app/assets/javascripts/questions.js
+@@ -1,11 +1,20 @@
+ // $(document).ready(function(q){
+-console.log('testing');
+ 
+ 
+-$("#mine-radio").click(
+-  function(){
+-    alert("I Work!")
+-  });
++$(document).ready(function(q){
++    $("#mine-radio").click(
++        function(){
++            $('.other-question').hide();
++            console.log("clicked")
++        }
++    );
++});
++
++
++// $("#mine-radio").click(
++//   function(){
++//     alert("I Work!")
++//   });
+ 
+ 
+ 
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index 26cf3ff..e7c5d2c 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -26,8 +26,8 @@
+   <div class = "question_list">
+   <% @questions.each do |question| %>
+ 
+-      <div class="panel-group" 
+-      <% if question["user_id"] == current_user.id %> "mine-question" <% end %>>
++      <div class= "panel-group" "test" <% if question["user_id"] != current_user.id %> "other-question" <% end %>>
++
+       <div class="panel panel-default">
+         <div class="panel-heading">
+           <h4 class="panel-title">
+-- 
+1.8.5.2 (Apple Git-48)
+
+
+From a1fcec12aa404e5f6986d97f1bf0241b9a3c4fa4 Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Sat, 28 Feb 2015 17:34:54 -0500
+Subject: [PATCH 5/7] All and mine buttons implemented
+
+---
+ app/assets/javascripts/questions.js | 14 +++++++++-----
+ app/views/questions/index.html.erb  |  4 ++--
+ 2 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/app/assets/javascripts/questions.js b/app/assets/javascripts/questions.js
+index ae05fb5..c068e00 100644
+--- a/app/assets/javascripts/questions.js
++++ b/app/assets/javascripts/questions.js
+@@ -2,12 +2,16 @@
+ 
+ 
+ $(document).ready(function(q){
++
+     $("#mine-radio").click(
+-        function(){
+-            $('.other-question').hide();
+-            console.log("clicked")
+-        }
+-    );
++      function(){
++        $('.other-question').hide();
++      });
++
++    $('#all-radio').click(function(){
++      $('.other-question').show();
++    });
++
+ });
+ 
+ 
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index e7c5d2c..4e204d9 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -13,7 +13,7 @@
+ 
+ 
+   <div id = "all-mine-filter" class="btn-group" data-toggle="buttons">
+-    <label class="btn btn-primary active" id="all_radio">
++    <label class="btn btn-primary active" id="all-radio">
+       <input type="radio" name="options" autocomplete="off" checked> All
+     </label>
+     <label class="btn btn-primary" id="mine-radio">
+@@ -26,7 +26,7 @@
+   <div class = "question_list">
+   <% @questions.each do |question| %>
+ 
+-      <div class= "panel-group" "test" <% if question["user_id"] != current_user.id %> "other-question" <% end %>>
++      <div class= "panel-group <%= 'other-question' if question['user_id'] != current_user.id%>">
+ 
+       <div class="panel panel-default">
+         <div class="panel-heading">
+-- 
+1.8.5.2 (Apple Git-48)
+
+
+From 60a116ac41ba18b2654edbd110a77cb935d9fec5 Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Sat, 28 Feb 2015 17:35:58 -0500
+Subject: [PATCH 6/7] Got rid of testing code on q index view
+
+---
+ app/views/questions/index.html.erb | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index 4e204d9..597ad36 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -1,14 +1,6 @@
+ 
+ <div class="container">
+   <br>
+-    <div class = "find_me">
+-      <%= current_user.id %>
+-      <% @my_questions.each do |my_q| %>
+-        <%= my_q%>
+-      <% end %>
+-    </div>
+-
+-
+   <h3 class="center"><b>Questions</b></h3><br>
+ 
+ 
+-- 
+1.8.5.2 (Apple Git-48)
+
+
+From 4fad509655e29729ffb50d2799edfea547dbede5 Mon Sep 17 00:00:00 2001
+From: hansss <hanakim@college.harvard.edu>
+Date: Sun, 1 Mar 2015 21:35:29 -0500
+Subject: [PATCH 7/7] Added css padding
+
+---
+ app/assets/stylesheets/questions.css.scss | 5 +++++
+ app/views/questions/index.html.erb        | 1 -
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/app/assets/stylesheets/questions.css.scss b/app/assets/stylesheets/questions.css.scss
+index 616b595..8cdbc0d 100644
+--- a/app/assets/stylesheets/questions.css.scss
++++ b/app/assets/stylesheets/questions.css.scss
+@@ -7,6 +7,11 @@ float: right;
+ 
+ }*/
+ 
++#all-mine-filter{
++  margin-bottom: 15px;
++
++}
++
+ .panel-title {
+   .btn-flat {
+     color: white;
+diff --git a/app/views/questions/index.html.erb b/app/views/questions/index.html.erb
+index 597ad36..76c0502 100644
+--- a/app/views/questions/index.html.erb
++++ b/app/views/questions/index.html.erb
+@@ -3,7 +3,6 @@
+   <br>
+   <h3 class="center"><b>Questions</b></h3><br>
+ 
+-
+   <div id = "all-mine-filter" class="btn-group" data-toggle="buttons">
+     <label class="btn btn-primary active" id="all-radio">
+       <input type="radio" name="options" autocomplete="off" checked> All
+-- 
+1.8.5.2 (Apple Git-48)
+

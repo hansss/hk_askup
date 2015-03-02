@@ -3,13 +3,14 @@
 
 $(document).ready(function(q){
 
-    $("#mine-radio").click(
-      function(){
-        $('.other-question').hide();
-      });
+    $("#mine-radio").click(function(){
+      $('.my-question').removeClass('hidden');
+      $('.other-question').addClass('hidden');
+    });
 
-    $('#all-radio').click(function(){
-      $('.other-question').show();
+    $('#other-radio').click(function(){
+      $('.my-question').addClass('hidden');
+      $('.other-question').removeClass('hidden');
     });
 
 });
